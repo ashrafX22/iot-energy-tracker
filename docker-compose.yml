@@ -1,0 +1,57 @@
+services:
+  # =============================================================
+  # Database Service for user-service (Database-per-Service)
+  # =============================================================
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      # Exposes container port 5432 as 5433 on the host
+      - "5433:5432"
+    volumes:
+      # Persists database data across container restarts
+      - user_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d user_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leet-network
+
+  # =============================================================
+  # User Service Microservice Application Container
+  # =============================================================
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      # Inside Docker, hostname is the service name 'user-db' on internal port 5432
+      DB_HOST: user-db
+      DB_PORT: 5432
+      DB_NAME: user_db
+      DB_USER: user
+      DB_PASSWORD: password
+    depends_on:
+      user-db:
+        condition: service_healthy
+    networks:
+      - leet-network
+
+volumes:
+  user_db_data:
+    driver: local
+
+networks:
+  leet-network:
+    driver: bridge

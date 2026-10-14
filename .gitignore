@@ -1,0 +1,23 @@
+# Root .gitignore for leetJourny microservices project
+
+# IDE and Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.DS_Store
+
+# Build artifacts
+target/
+build/
+*.jar
+*.war
+
+# Docker and local storage
+data/
+*.log
+
+# Environment and secrets
+.env
+.env.local
