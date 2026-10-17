@@ -30,7 +30,7 @@ services:
   user-service:
     build:
       context: ./user-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: user-service
     restart: unless-stopped
     ports:
@@ -42,6 +42,21 @@ services:
       DB_NAME: user_db
       DB_USER: user
       DB_PASSWORD: password
+    volumes:
+      # Mount the local project directory for live class & source syncing
+      - ./user-service:/app
+      # Cache downloaded Maven dependencies
+      - maven_cache:/root/.m2
+    develop:
+      watch:
+        - action: sync
+          path: ./user-service/src
+          target: /app/src
+        - action: sync
+          path: ./user-service/target/classes
+          target: /app/target/classes
+        - action: rebuild
+          path: ./user-service/pom.xml
     depends_on:
       user-db:
         condition: service_healthy
@@ -50,6 +65,8 @@ services:
 
 volumes:
   user_db_data:
+    driver: local
+  maven_cache:
     driver: local
 
 networks:
