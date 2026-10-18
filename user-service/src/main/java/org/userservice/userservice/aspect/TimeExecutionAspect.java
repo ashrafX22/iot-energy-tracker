@@ -16,10 +16,11 @@ public class TimeExecutionAspect {
     public void controllerMethod (){}
 
     @Around("controllerMethod()")
-    public void logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
-        joinPoint.proceed();
+        Object result = joinPoint.proceed();
         long endTime = System.currentTimeMillis();
         log.info("Execution time: ControllerMethod Name:: {} {}ms", joinPoint.getSignature().getName(), endTime - startTime);
+        return result;
     }
 }

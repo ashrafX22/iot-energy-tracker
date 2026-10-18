@@ -16,6 +16,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * JPA Entity representing the User domain model.
@@ -31,8 +32,8 @@ import java.util.Objects;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;

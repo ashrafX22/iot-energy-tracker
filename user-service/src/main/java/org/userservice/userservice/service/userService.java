@@ -8,6 +8,7 @@ import org.userservice.userservice.entity.User;
 import org.userservice.userservice.repository.userRepository;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,8 +40,14 @@ public class userService {
     }
 
     @Transactional(readOnly = true)
-    public userDto getUserById(Long id) {
+    public userDto getUserById(UUID id) {
         return userRepository.findById(id)
+                .map(this::mapToDto)
+                .orElse(null);
+    }
+    @Transactional
+    public userDto findByAddress(String address) {
+        return userRepository.findByAddress(address)
                 .map(this::mapToDto)
                 .orElse(null);
     }
@@ -53,7 +60,7 @@ public class userService {
     }
 
 
-    public userDto updateUser(Long id,userDto userDto){
+    public userDto updateUser(UUID id,userDto userDto){
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         user.setUsername(userDto.getUsername());
@@ -63,7 +70,7 @@ public class userService {
         user.setEnergyAlertingThreshold(userDto.getEnergyAlertingThreshold());
         return mapToDto(userRepository.save(user));
     }
-    public void deleteUser(Long id){
+    public void deleteUser(UUID id){
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         userRepository.delete(user);

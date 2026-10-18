@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository;
 import org.userservice.userservice.entity.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface userRepository extends JpaRepository<User, Long> {
+public interface userRepository extends JpaRepository<User, UUID> {
+    Optional<User> findByAddress(String address);
 }
