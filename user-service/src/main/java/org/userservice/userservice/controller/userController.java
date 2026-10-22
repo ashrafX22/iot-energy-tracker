@@ -29,15 +29,12 @@ public class userController {
     @GetMapping("")
     public ResponseEntity<List<userDto>> getAllUsers() {
         List<userDto> users = userService.getAllUsers();
-        log.info("Retrieved all users: {}", users);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<userDto> getUserById(@PathVariable UUID id) {
         userDto user = userService.getUserById(id);
-        log.info("Retrieved user: {}", user);
-
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

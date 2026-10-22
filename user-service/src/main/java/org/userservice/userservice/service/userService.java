@@ -1,10 +1,10 @@
 package org.userservice.userservice.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.userservice.userservice.dto.userDto;
 import org.userservice.userservice.entity.User;
+import org.userservice.userservice.exception.UserNotFoundException;
 import org.userservice.userservice.repository.userRepository;
 
 import java.util.List;
@@ -41,15 +41,15 @@ public class userService {
 
     @Transactional(readOnly = true)
     public userDto getUserById(UUID id) {
-        return userRepository.findById(id)
-                .map(this::mapToDto)
-                .orElse(null);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        return mapToDto(user);
     }
     @Transactional
     public userDto findByAddress(String address) {
         return userRepository.findByAddress(address)
                 .map(this::mapToDto)
-                .orElse(null);
+                .orElseThrow(() -> new UserNotFoundException("User not found with address: " + address));
     }
 
     @Transactional(readOnly = true)
@@ -62,7 +62,7 @@ public class userService {
 
     public userDto updateUser(UUID id,userDto userDto){
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
         user.setAddress(userDto.getAddress());
@@ -72,7 +72,7 @@ public class userService {
     }
     public void deleteUser(UUID id){
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
         userRepository.delete(user);
     }
 

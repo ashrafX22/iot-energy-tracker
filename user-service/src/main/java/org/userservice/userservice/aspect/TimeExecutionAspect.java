@@ -20,7 +20,8 @@ public class TimeExecutionAspect {
         long startTime = System.currentTimeMillis();
         Object result = joinPoint.proceed();
         long endTime = System.currentTimeMillis();
-        log.info("Execution time: ControllerMethod Name:: {} {}ms", joinPoint.getSignature().getName(), endTime - startTime);
+        log.info("Execution time of {} is {}ms", joinPoint.getSignature().getName(), endTime - startTime);
+
         return result;
     }
 }

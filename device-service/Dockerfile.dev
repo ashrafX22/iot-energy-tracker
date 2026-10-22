@@ -1,0 +1,23 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+WORKDIR /app
+
+# Copy Maven wrapper and POM descriptor to leverage Docker caching for dependencies
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Fix potential Windows CRLF line endings and grant execute permissions
+RUN sed -i 's/\r$//' ./mvnw && chmod +x ./mvnw
+
+# Pre-download dependencies in an isolated layer
+RUN ./mvnw dependency:go-offline -B
+
+# Copy application source code
+COPY src src
+
+# Expose microservice HTTP port
+EXPOSE 8082
+
+# Run Spring Boot application directly using Maven
+CMD ["./mvnw", "spring-boot:run"]
