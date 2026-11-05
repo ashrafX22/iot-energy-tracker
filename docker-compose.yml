@@ -99,10 +99,100 @@ services:
     networks:
       - leet-network
 
+  # =============================================================
+  # Ingestion Service Microservice Application Container
+  # =============================================================
+  ingestion-service:
+    build:
+      context: ./ingestion-service
+      dockerfile: Dockerfile.dev
+    container_name: ingestion-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    volumes:
+      - ./ingestion-service:/app
+      - maven_cache:/root/.m2
+    develop:
+      watch:
+        - action: sync
+          path: ./ingestion-service/src
+          target: /app/src
+        - action: sync
+          path: ./ingestion-service/target/classes
+          target: /app/target/classes
+        - action: rebuild
+          path: ./ingestion-service/pom.xml
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - leet-network
+
+  # =============================================================
+  # Apache Kafka (KRaft Mode - No ZooKeeper)
+  # =============================================================
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    restart: unless-stopped
+    ports:
+      # 9092 for internal network / container access, 9094 for host access
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - leet-network
+
+  # =============================================================
+  # IoT Device Simulator (Activated via --profile simulator)
+  # =============================================================
+  iot-simulator:
+    build:
+      context: iot-simulator-service
+      dockerfile: Dockerfile
+    container_name: iot-simulator
+    restart: unless-stopped
+    profiles:
+      - simulator
+    environment:
+      INGESTION_URL: http://ingestion-service:8083/ingestion/energy
+      DEVICE_SERVICE_URL: http://device-service:8082/devices
+      SIM_NUM_DEVICES: "10"
+      SIM_INTERVAL: "3.0"
+    depends_on:
+      ingestion-service:
+        condition: service_started
+    networks:
+      - leet-network
+
 volumes:
   user_db_data:
     driver: local
   maven_cache:
+    driver: local
+  kafka_data:
     driver: local
 
 networks:
