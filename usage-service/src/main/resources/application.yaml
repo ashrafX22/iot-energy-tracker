@@ -1,0 +1,47 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: usage-service
+
+  # Database Connection (TimescaleDB / PostgreSQL)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/timescale_db}
+    username: ${DB_USER:user}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA & Hibernate Settings
+  jpa:
+    hibernate:
+      # 'validate' ensures Hibernate checks entity mappings against existing tables
+      # without attempting to modify TimescaleDB hypertables directly
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Flyway Database Migrations
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  # Kafka Consumer Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    consumer:
+      group-id: usage-service-group
+      # 'earliest' ensures no events are missed if the service restarts
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        # Trust all packages so JSON deserializer can map incoming payloads into our DTO
+        spring.json.trusted.packages: "*"
+
+app:
+  kafka:
+    topic:
+      energy-usage: ${KAFKA_ENERGY_TOPIC:energy-usage-events}
