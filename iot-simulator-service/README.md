@@ -1,6 +1,6 @@
 # IoT Device Simulator (`iot-simulator`)
 
-A lightweight, realistic smart electric meter telemetry generator for the `leetJourny` platform. Simulates smart meters transmitting periodic or burst energy readings to `ingestion-service` and Apache Kafka.
+A lightweight, realistic smart electric meter telemetry generator for the `IotEnergyTracker` platform. Simulates smart meters transmitting periodic or burst energy readings to `ingestion-service` and Apache Kafka.
 
 ---
 

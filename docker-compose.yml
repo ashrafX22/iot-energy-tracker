@@ -1,3 +1,5 @@
+name: iot-energy-tracker
+
 services:
   # =============================================================
   # Database Service for user-service (Database-per-Service)
@@ -7,22 +9,47 @@ services:
     container_name: user-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: user_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${USER_DB_NAME:-user_db}
+      POSTGRES_USER: ${USER_DB_USER:-user}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-password}
     ports:
-      # Exposes container port 5432 as 5433 on the host
-      - "5433:5432"
+      # Exposes container port 5432 on the host
+      - "${USER_DB_PORT:-5433}:5432"
     volumes:
       # Persists database data across container restarts
       - user_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d user_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USER:-user} -d ${USER_DB_NAME:-user_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - leet-network
+      - energy-tracker-network
+
+  # =============================================================
+  # TimescaleDB Time-Series Database Service
+  # =============================================================
+  timescale-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescale-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${TIMESCALE_DB_NAME:-timescale_db}
+      POSTGRES_USER: ${TIMESCALE_DB_USER:-user}
+      POSTGRES_PASSWORD: ${TIMESCALE_DB_PASSWORD:-password}
+    ports:
+      # Exposes container port 5432 on the host
+      - "${TIMESCALE_DB_PORT:-5434}:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./timescaledb/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TIMESCALE_DB_USER:-user} -d ${TIMESCALE_DB_NAME:-timescale_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energy-tracker-network
 
   # =============================================================
   # User Service Microservice Application Container
@@ -34,14 +61,14 @@ services:
     container_name: user-service
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "${USER_SERVICE_PORT:-8081}:8081"
     environment:
       # Inside Docker, hostname is the service name 'user-db' on internal port 5432
       DB_HOST: user-db
       DB_PORT: 5432
-      DB_NAME: user_db
-      DB_USER: user
-      DB_PASSWORD: password
+      DB_NAME: ${USER_DB_NAME:-user_db}
+      DB_USER: ${USER_DB_USER:-user}
+      DB_PASSWORD: ${USER_DB_PASSWORD:-password}
     volumes:
       # Mount the local project directory for live class & source syncing
       - ./user-service:/app
@@ -61,7 +88,7 @@ services:
       user-db:
         condition: service_healthy
     networks:
-      - leet-network
+      - energy-tracker-network
 
   # =============================================================
   # Device Service Microservice Application Container
@@ -73,13 +100,13 @@ services:
     container_name: device-service
     restart: unless-stopped
     ports:
-      - "8082:8082"
+      - "${DEVICE_SERVICE_PORT:-8082}:8082"
     environment:
       DB_HOST: user-db
       DB_PORT: 5432
-      DB_NAME: user_db
-      DB_USER: user
-      DB_PASSWORD: password
+      DB_NAME: ${USER_DB_NAME:-user_db}
+      DB_USER: ${USER_DB_USER:-user}
+      DB_PASSWORD: ${USER_DB_PASSWORD:-password}
     volumes:
       - ./device-service:/app
       - maven_cache:/root/.m2
@@ -97,7 +124,7 @@ services:
       user-db:
         condition: service_healthy
     networks:
-      - leet-network
+      - energy-tracker-network
 
   # =============================================================
   # Ingestion Service Microservice Application Container
@@ -109,7 +136,7 @@ services:
     container_name: ingestion-service
     restart: unless-stopped
     ports:
-      - "8083:8083"
+      - "${INGESTION_SERVICE_PORT:-8083}:8083"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     volumes:
@@ -129,7 +156,7 @@ services:
       kafka:
         condition: service_healthy
     networks:
-      - leet-network
+      - energy-tracker-network
 
   # =============================================================
   # Apache Kafka (KRaft Mode - No ZooKeeper)
@@ -163,7 +190,7 @@ services:
       timeout: 10s
       retries: 5
     networks:
-      - leet-network
+      - energy-tracker-network
 
   # =============================================================
   # IoT Device Simulator (Activated via --profile simulator)
@@ -185,10 +212,12 @@ services:
       ingestion-service:
         condition: service_started
     networks:
-      - leet-network
+      - energy-tracker-network
 
 volumes:
   user_db_data:
+    driver: local
+  timescale_data:
     driver: local
   maven_cache:
     driver: local
@@ -196,5 +225,5 @@ volumes:
     driver: local
 
 networks:
-  leet-network:
+  energy-tracker-network:
     driver: bridge

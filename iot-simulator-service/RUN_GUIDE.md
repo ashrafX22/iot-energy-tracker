@@ -68,7 +68,7 @@ python3 main.py --mode burst --count 500 --fetch-devices
 
 The simulator is configured with the `simulator` profile in `docker-compose.yml`, so it does **not** run automatically on normal `docker compose up`.
 
-From the project root directory (`leetJourny`):
+From the project root directory (`IotEnergyTracker`):
 
 ### 3.1. Start the Simulator in the Background
 ```bash
