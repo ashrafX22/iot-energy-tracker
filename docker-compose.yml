@@ -42,7 +42,6 @@ services:
       - "${TIMESCALE_DB_PORT:-5434}:5432"
     volumes:
       - timescale_data:/var/lib/postgresql/data
-      - ./timescaledb/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${TIMESCALE_DB_USER:-user} -d ${TIMESCALE_DB_NAME:-timescale_db}"]
       interval: 5s
