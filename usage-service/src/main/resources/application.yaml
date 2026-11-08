@@ -40,6 +40,7 @@ spring:
       properties:
         # Trust all packages so JSON deserializer can map incoming payloads into our DTO
         spring.json.trusted.packages: "*"
+        spring.json.value.default.type: org.example.usageservice.dto.EnergyUsageDto
 
 app:
   kafka:
