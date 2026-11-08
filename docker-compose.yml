@@ -72,7 +72,7 @@ services:
       # Mount the local project directory for live class & source syncing
       - ./user-service:/app
       # Cache downloaded Maven dependencies
-      - maven_cache:/root/.m2
+      - ./.docker-cache/maven:/root/.m2
     develop:
       watch:
         - action: sync
@@ -108,7 +108,7 @@ services:
       DB_PASSWORD: ${USER_DB_PASSWORD:-password}
     volumes:
       - ./device-service:/app
-      - maven_cache:/root/.m2
+      - ./.docker-cache/maven:/root/.m2
     develop:
       watch:
         - action: sync
@@ -140,7 +140,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     volumes:
       - ./ingestion-service:/app
-      - maven_cache:/root/.m2
+      - ./.docker-cache/maven:/root/.m2
     develop:
       watch:
         - action: sync
@@ -152,6 +152,44 @@ services:
         - action: rebuild
           path: ./ingestion-service/pom.xml
     depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - energy-tracker-network
+
+  # =============================================================
+  # Usage Service Microservice Application Container
+  # =============================================================
+  usage-service:
+    build:
+      context: ./usage-service
+      dockerfile: Dockerfile.dev
+    container_name: usage-service
+    restart: unless-stopped
+    ports:
+      - "${USAGE_SERVICE_PORT:-8084}:8084"
+    environment:
+      DB_URL: jdbc:postgresql://timescale-db:5432/${TIMESCALE_DB_NAME:-timescale_db}
+      DB_USER: ${TIMESCALE_DB_USER:-user}
+      DB_PASSWORD: ${TIMESCALE_DB_PASSWORD:-password}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_ENERGY_TOPIC: ${KAFKA_ENERGY_TOPIC:-energy-usage-events}
+    volumes:
+      - ./usage-service:/app
+      - ./.docker-cache/maven:/root/.m2
+    develop:
+      watch:
+        - action: sync
+          path: ./usage-service/src
+          target: /app/src
+        - action: sync
+          path: ./usage-service/target/classes
+          target: /app/target/classes
+        - action: rebuild
+          path: ./usage-service/pom.xml
+    depends_on:
+      timescale-db:
+        condition: service_healthy
       kafka:
         condition: service_healthy
     networks:
@@ -217,8 +255,6 @@ volumes:
   user_db_data:
     driver: local
   timescale_data:
-    driver: local
-  maven_cache:
     driver: local
   kafka_data:
     driver: local
