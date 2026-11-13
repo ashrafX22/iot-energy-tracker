@@ -10,6 +10,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 @Getter
@@ -18,8 +19,8 @@ import java.util.Objects;
 @AllArgsConstructor
 public class EnergyReadingId implements Serializable {
 
-    @Column(name = "meter_id", nullable = false, length = 100)
-    private String meterId;
+    @Column(name = "meter_id", nullable = false)
+    private UUID meterId;
 
     @Column(name = "time", nullable = false)
     private Instant time;

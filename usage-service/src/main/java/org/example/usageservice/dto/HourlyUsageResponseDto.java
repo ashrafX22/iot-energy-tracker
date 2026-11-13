@@ -1,13 +1,14 @@
 package org.example.usageservice.dto;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * REST Response DTO for hourly aggregated energy consumption.
  */
 public record HourlyUsageResponseDto(
     Instant bucket,
-    String meterId,
+    UUID meterId,
     Double avgUsage,
     Double peakUsage,
     Double minUsage,

@@ -35,14 +35,18 @@ spring:
       group-id: usage-service-group
       # 'earliest' ensures no events are missed if the service restarts
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         # Trust all packages so JSON deserializer can map incoming payloads into our DTO
         spring.json.trusted.packages: "*"
-        spring.json.value.default.type: org.example.usageservice.dto.EnergyUsageDto
+        spring.json.value.default.type: org.example.usageservice.consumer.dto.EnergyUsageDto
 
 app:
   kafka:
     topic:
       energy-usage: ${KAFKA_ENERGY_TOPIC:energy-usage-events}
+
+services:
+  device-service:
+    url: ${DEVICE_SERVICE_URL:http://localhost:8082}

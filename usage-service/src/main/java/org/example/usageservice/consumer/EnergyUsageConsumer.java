@@ -1,7 +1,7 @@
 package org.example.usageservice.consumer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.usageservice.dto.EnergyUsageDto;
+import org.example.usageservice.consumer.dto.EnergyUsageDto;
 import org.example.usageservice.entity.EnergyReading;
 import org.example.usageservice.entity.EnergyReadingId;
 import org.example.usageservice.repository.EnergyReadingRepository;

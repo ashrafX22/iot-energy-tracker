@@ -174,6 +174,7 @@ services:
       DB_PASSWORD: ${TIMESCALE_DB_PASSWORD:-password}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_ENERGY_TOPIC: ${KAFKA_ENERGY_TOPIC:-energy-usage-events}
+      DEVICE_SERVICE_URL: http://device-service:8082
     volumes:
       - ./usage-service:/app
       - ./.docker-cache/maven:/root/.m2
