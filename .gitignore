@@ -1,4 +1,4 @@
-# Root .gitignore for leetJourny microservices project
+# Root .gitignore for IotEnergyTracker microservices project
 
 # IDE and Editor files
 .idea/
@@ -17,7 +17,12 @@ build/
 # Docker and local storage
 data/
 *.log
+.docker-cache
 
 # Environment and secrets
 .env
 .env.local
+
+# Python bytecode
+__pycache__/
+*.pyc

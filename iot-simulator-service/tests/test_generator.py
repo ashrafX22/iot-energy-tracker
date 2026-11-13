@@ -15,17 +15,19 @@ class TestEnergyDataGenerator(unittest.TestCase):
         self.generator = EnergyDataGenerator(base_load=2.0, peak_multiplier=3.0)
 
     def test_reading_structure(self):
-        reading = self.generator.generate_reading("meter-042")
+        sample_uuid = "10000000-0000-0000-0000-000000000001"
+        reading = self.generator.generate_reading(sample_uuid)
         self.assertIn("meterId", reading)
         self.assertIn("timestamp", reading)
         self.assertIn("energyUsage", reading)
-        self.assertEqual(reading["meterId"], "meter-042")
+        self.assertEqual(reading["meterId"], sample_uuid)
         self.assertIsInstance(reading["energyUsage"], float)
         self.assertGreater(reading["energyUsage"], 0.0)
 
     def test_timestamp_iso_format(self):
         fixed_dt = datetime.datetime(2026, 10, 29, 14, 30, 0, tzinfo=datetime.timezone.utc)
-        reading = self.generator.generate_reading("meter-001", timestamp=fixed_dt)
+        sample_uuid = "10000000-0000-0000-0000-000000000001"
+        reading = self.generator.generate_reading(sample_uuid, timestamp=fixed_dt)
         self.assertEqual(reading["timestamp"], "2026-10-29T14:30:00Z")
 
     def test_diurnal_peak_higher_than_night(self):

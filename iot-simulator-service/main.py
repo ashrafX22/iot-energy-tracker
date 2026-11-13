@@ -3,6 +3,7 @@ import logging
 import signal
 import sys
 import time
+import uuid
 from typing import List
 
 from config import SimulatorConfig
@@ -26,7 +27,7 @@ def signal_handler(sig, frame):
 
 
 def generate_synthetic_device_ids(count: int) -> List[str]:
-    return [f"meter-{i:03d}" for i in range(1, count + 1)]
+    return [str(uuid.uuid5(uuid.NAMESPACE_DNS, f"meter-{i:03d}")) for i in range(1, count + 1)]
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
 
     default_cfg = SimulatorConfig()
 
-    parser = argparse.ArgumentParser(description="IoT Smart Meter Telemetry Simulator for leetJourny")
+    parser = argparse.ArgumentParser(description="IoT Smart Meter Telemetry Simulator for IotEnergyTracker")
     parser.add_argument(
         "--mode",
         choices=["stream", "burst"],
