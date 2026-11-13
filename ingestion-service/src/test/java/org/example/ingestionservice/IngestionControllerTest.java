@@ -14,6 +14,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +41,7 @@ class IngestionControllerTest {
 
     @Test
     void shouldIngestEnergyUsageSuccessfully() throws Exception {
-        energyUsageDto dto = new energyUsageDto("meter-001", "2026-10-29T18:00:00Z", 42.5);
+        energyUsageDto dto = new energyUsageDto(UUID.randomUUID(), "2026-10-29T18:00:00Z", 42.5);
         when(ingestionService.sendEnergyUsage(any(energyUsageDto.class)))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
@@ -49,7 +50,7 @@ class IngestionControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"))
-                .andExpect(jsonPath("$.meterId").value("meter-001"));
+                .andExpect(jsonPath("$.meterId").value(dto.meterId().toString()));
 
         verify(ingestionService).sendEnergyUsage(dto);
     }

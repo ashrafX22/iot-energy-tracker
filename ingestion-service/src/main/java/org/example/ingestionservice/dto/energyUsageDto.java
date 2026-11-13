@@ -1,7 +1,9 @@
 package org.example.ingestionservice.dto;
 
+import java.util.UUID;
+
 public record energyUsageDto(
-        String meterId,
+        UUID meterId,
         String timestamp,
         double energyUsage
 ) {

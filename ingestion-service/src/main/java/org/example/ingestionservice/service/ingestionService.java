@@ -7,24 +7,25 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
 public class ingestionService {
 
-    private final KafkaTemplate<String, energyUsageDto> kafkaTemplate;
+    private final KafkaTemplate<UUID, energyUsageDto> kafkaTemplate;
     private final String topicName;
 
-    public ingestionService(KafkaTemplate<String, energyUsageDto> kafkaTemplate,
+    public ingestionService(KafkaTemplate<UUID, energyUsageDto> kafkaTemplate,
                             @Value("${app.kafka.topic.energy-usage:energy-usage-events}") String topicName) {
         this.kafkaTemplate = kafkaTemplate;
         this.topicName = topicName;
     }
 
-    public CompletableFuture<SendResult<String, energyUsageDto>> sendEnergyUsage(energyUsageDto energyUsage) {
+    public CompletableFuture<SendResult<UUID, energyUsageDto>> sendEnergyUsage(energyUsageDto energyUsage) {
         log.info("Publishing energy usage event for meterId '{}' to topic '{}'", energyUsage.meterId(), topicName);
-        CompletableFuture<SendResult<String, energyUsageDto>> future = kafkaTemplate.send(topicName, energyUsage.meterId(), energyUsage);
+        CompletableFuture<SendResult<UUID, energyUsageDto>> future = kafkaTemplate.send(topicName, energyUsage.meterId(), energyUsage);
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {
